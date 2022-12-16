@@ -1,27 +1,28 @@
 function generateParenthesis(n: number): string[] {
-  if(n == 1) return ["()"];
-  const result: string[] = [];
-  result.push(...calNextSizeOf(generateParenthesis(n - 1)));
-  for (let i = 1; i < n; i++) {
-      result.push(...combine(generateParenthesis(n - i), generateParenthesis(i)));
-  }
-  return Array.from(new Set(result));
+    return ParenthesisGenerator.generateNumOfPairIs(n);
 }
 
-function calNextSizeOf(prevParenthesisSet: string[]): string[] {
-  const set = new Set<string>();
-  for (const parenthesis of prevParenthesisSet) {
-      set.add(`(${parenthesis})`);
-  }
-  return Array.from(set);
-}
+class ParenthesisGenerator {
+    private readonly numOfPairs: number;
+    private result: string[];
 
-function combine(setA: string[], setB: string[]): string[] {
-  const set = new Set<string>();
-  for (const a of setA) {
-      for (const b of setB) {
-          set.add(a + b);
-      }
-  }
-  return Array.from(set);
+    static generateNumOfPairIs(numOfPairs: number): string[] {
+        return new ParenthesisGenerator(numOfPairs).result;
+    }
+
+    private constructor(numOfPairs: number) {
+        this.numOfPairs = numOfPairs;
+        this.result = [];
+        this.backtracking("", 0, 0);
+    }
+
+    private backtracking(curPairs: string, openBracketCnt: number, closeBracketCnt: number) {
+        if (curPairs.length == this.numOfPairs * 2) this.result.push(curPairs);
+        if (openBracketCnt < this.numOfPairs) {
+            this.backtracking(curPairs + "(", openBracketCnt + 1, closeBracketCnt);
+        }
+        if (closeBracketCnt < openBracketCnt) {
+            this.backtracking(curPairs + ")", openBracketCnt, closeBracketCnt + 1);
+        }
+    }
 }
