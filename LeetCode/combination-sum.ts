@@ -1,35 +1,47 @@
-let combinationsFor: Map<number, Set<number[]>>;
-
 function combinationSum(candidates: number[], target: number): number[][] {
-    combinationsFor = new Map<number, Set<number[]>>();
-    return Array.from(recur(candidates, target));
+    const combinationSum = new CombinationSum(candidates);
+    return combinationSum.getCombinationsFor(target);
 }
 
-function recur(candidates: number[], target: number): Set<number[]> {
-    if (combinationsFor.has(target)) {
-        return combinationsFor.get(target);
+class CombinationSum {
+    combinationsFor: Map<number, number[][]>;
+    candidates: number[];
+
+    constructor(candidates: number[]) {
+        this.combinationsFor = new Map<number, number[][]>();
+        this.candidates = candidates;
     }
 
-    const combinations = new Set<string>();
-    for (const candidate of candidates) {
-        if(target - candidate < 0) {
-            continue;
+    getCombinationsFor(target: number): number[][] {
+        if (this.combinationsFor.has(target)) {
+            return this.combinationsFor.get(target);
         }
-        if(target - candidate === 0) {
-            combinations.add(JSON.stringify([candidate]));
-            continue;
-        }
-        const prevCombinations = recur(candidates, target - candidate);
-        for (const prevCombination of prevCombinations) {
-            const combination = [...prevCombination, candidate].sort();
-            combinations.add(JSON.stringify(combination));
-        }
+        const combinations = this.getAllCombinationsFor(target);
+        const distinctCombinations = distinct(combinations);
+        this.combinationsFor.set(target, distinctCombinations);
+        return distinctCombinations;
     }
 
-    const ret = new Set<number[]>();
-    for (const c of combinations) {
-        ret.add(JSON.parse(c));
+    private getAllCombinationsFor(target: number): number[][] {
+        const combinations: number[][] = [];
+        this.candidates.forEach(candidate => {
+            if (candidate === target) {
+                combinations.push([candidate]);
+            }
+            if (candidate >= target) {
+                return;
+            }
+            const nextTarget = target - candidate;
+            const combinationsOfNextTarget = this.getCombinationsFor(nextTarget);
+            combinationsOfNextTarget
+                .map(value => [...value, candidate])
+                .forEach(value => combinations.push(value));
+        });
+        return combinations;
     }
-    combinationsFor.set(target, ret);
-    return ret;
+}
+
+function distinct(nums: number[][]): number[][] {
+    const distinctSet = new Set([...nums].map(value => JSON.stringify(value.sort())));
+    return [...distinctSet].map(value => JSON.parse(value));
 }
